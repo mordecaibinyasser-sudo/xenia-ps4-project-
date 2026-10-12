@@ -1,0 +1,32 @@
+
+name: Test PS4 Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Build OpenOrbis hello world sample
+        uses: OpenOrbis/toolchain-action@main
+        with:
+          version: v0.5.1
+          command: |
+            git clone --depth 1 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git /tmp/oo
+            cd /tmp/oo/samples/hello_world
+            make
+            PkgTool.Core pkg_build pkg/pkg.gp4 .
+            mkdir -p "$GITHUB_WORKSPACE/out"
+            cp *.pkg "$GITHUB_WORKSPACE/out/"
+
+      - name: Save PKG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ps4-test-pkg
+          path: out/*.pkg
